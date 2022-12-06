@@ -1,0 +1,320 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Datatables-Highcharts-Leaflet example</title>
+<style>
+		    .leaflet {height:30rem;}
+		</style>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.5.2/animate.min.css">
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous" type="2c1512a1b7158f87de304483-text/javascript"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<!-- <link rel="stylesheet" href="http://code.ionicframework.com/ionicons/1.5.2/css/ionicons.min.css"> -->
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous" type="2c1512a1b7158f87de304483-text/javascript"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous" type="2c1512a1b7158f87de304483-text/javascript"></script>
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.16/b-1.5.1/sc-1.4.3/sl-1.2.4/datatables.min.css" />
+<script type="2c1512a1b7158f87de304483-text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.16/b-1.5.1/sc-1.4.3/sl-1.2.4/datatables.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/plug-ins/preview/searchPane/dataTables.searchPane.min.css" />
+<script type="2c1512a1b7158f87de304483-text/javascript" src="https://cdn.datatables.net/plug-ins/preview/searchPane/dataTables.searchPane.min.js"></script>
+
+<script type="2c1512a1b7158f87de304483-text/javascript" src="https://code.highcharts.com/highcharts.js"></script>
+<script type="2c1512a1b7158f87de304483-text/javascript" src="https://code.highcharts.com/modules/no-data-to-display.js"></script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin="" type="2c1512a1b7158f87de304483-text/javascript"></script>
+
+<script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js' type="2c1512a1b7158f87de304483-text/javascript"></script>
+<link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css' rel='stylesheet' />
+
+<link rel="stylesheet" href="leaflet.awesome-markers.css" />
+<script src="leaflet.awesome-markers.js" type="2c1512a1b7158f87de304483-text/javascript"></script>
+</head>
+<body>
+<div class="container-fluid">
+<div class="row">
+<div class="col animated fadeInLeft">
+<div class="card">
+<div class="card-header">
+<h4>Highcharts</h4>
+</div>
+<div id="chart" style="height:30rem"></div>
+</div>
+</div>
+<div class="col animated fadeInRight">
+<div class="card">
+<div class="card-header">
+<h4>Leaflet</h4>
+</div>
+<div class="leaflet" id="map"></div>
+</div>
+</div>
+</div>
+<div class="row">
+<div class="col">
+<div class="card">
+<div class="card-header">
+<h4>DataTables</h4>
+</div>
+<table class="table table-striped table-hover table-sm" id="dt-table">
+<thead class="thead-dark">
+<tr>
+<th>Team</th>
+<th>Coach</th>
+<th>Org</th>
+<th>Class</th>
+<th>Rgn</th>
+<th>SRgn</th>
+<th>AvgSc</th>
+<th>AvgAl</th>
+<th>AvgMV</th>
+<th>Playoffs</th>
+<th>Latitude</th>
+<th>Longitude</th>
+</tr>
+</thead>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+<script type="2c1512a1b7158f87de304483-text/javascript">
+			let draw = false;
+
+			const tooltipThreshold = 10;
+			const tooltipDetailsThreshold = 12;
+			
+		    // Create map, markers array, and markers layer
+            var mymap = new L.Map('map', {
+                fullscreenControl: true
+            });
+            var markersLayer = new L.LayerGroup();
+            // Add markers layer
+            markersLayer.addTo(mymap);
+
+			$(document).ready(function() {
+                // create DataTable
+                var table = $("#dt-table").DataTable(
+                    {
+                        "ajax": "datatables.json",
+                        "columnDefs": [
+                            {
+                                "targets": [ 10, 11 ],
+                                "visible": false,
+                                "searchable": false
+                            }
+                        ],
+                        "order": [ 8, "desc" ],
+                        "searchPane": {
+                            "threshold": 1
+                        }
+                    }
+                )
+                .on("page", () => {
+			    draw = true;
+			  })
+			  .on("draw", () => {
+			    if (draw) {
+                    draw = false;
+			    } else {
+                    createHighcharts(getChartData(table));
+                    updateMap(table);
+			    }
+			  });
+                
+                // create Highcharts
+                createHighcharts(getChartData(table));
+                
+                // create Leaflet
+                createMap();
+
+                // Set table events
+                setTableEvents(table);
+			});
+			
+			function getChartData(table) {
+			  const dataArray = [], teamArray = [], scoredArray = [], allowedArray = [];
+			
+                // loop table rows
+                table.rows({ search: "applied" }).every(function() {
+                    var data = this.data();
+                    teamArray.push(data[0]);
+                    scoredArray.push(parseFloat(data[6]));
+                    allowedArray.push(parseFloat(data[7]));
+                });
+			
+			  // store all data in dataArray
+			  dataArray.push(teamArray, scoredArray, allowedArray);
+
+			  return dataArray;
+			}
+			
+			function createHighcharts(data) {
+			
+			  Highcharts.chart("chart", {
+			    title: {
+			      text: "Scored versus Allowed"
+			    },
+			    subtitle: {
+			      text: "Data from GHSFHA.org"
+			    },
+			    xAxis: [
+			      {
+			        categories: data[0],
+			        labels: {
+			          rotation: -45
+			        }
+			      }
+			    ],
+			    yAxis: [
+			      {
+			        // first yaxis
+			        title: {
+			          text: "Scored"
+			        }
+			      },
+			      {
+			        // secondary yaxis
+			        title: {
+			          text: "Allowed"
+			        },
+			        opposite: true
+			      }
+			    ],
+			    series: [
+			      {
+			        name: "Scored",
+			        color: "#0071A7",
+			        type: "spline",
+			        data: data[1]
+			      },
+			      {
+			        name: "Allowed",
+			        color: "#FF404E",
+			        type: "spline",
+			        data: data[2]
+			      }
+			    ],
+			    tooltip: {
+			      shared: true
+			    },
+			    legend: {
+			      backgroundColor: "#ececec",
+			      shadow: true
+			    },
+			    credits: {
+			      enabled: false
+			    },
+			    noData: {
+			      style: {
+			        fontSize: "16px"
+			      }
+			    }
+			  });
+			}
+			
+			function createMap() {
+	            var style = 'osm-intl';
+	            var server = 'https://maps.wikimedia.org/';
+	            
+	            // Set view
+	            mymap.setView([32.1656, -82.9001], 6);
+	            
+	            // Add a map layer
+	            L.tileLayer(server + style + '/{z}/{x}/{y}.png', {
+	                maxZoom: 18,
+	                id: 'wikipedia-map-01',
+	                attribution: 'Wikimedia maps beta | Map data &copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+	            }).addTo(mymap);
+	       }
+
+			function updateMap(table) {
+			    
+                markersLayer.clearLayers();
+
+                var markerIcon = L.AwesomeMarkers.icon({
+                    icon: 'circle',
+					// icon: 'coffee',
+                    markerColor: 'red',
+					iconColor: 'blue',
+                    prefix: 'fa'
+                });
+
+                table.rows({ search: "applied" }).every(function() {
+    			    var data = this.data();
+
+                    var lat = parseFloat(data[10]);
+                    var lng = parseFloat(data[11]);
+                    var popupText = '<div class="modal-content" style="width:18rem;">'+
+                        '<div class="modal-header">'+
+                            '<h5 class="modal-title">'+data[0]+'</h5>'+
+                        '</div>'+
+                        '<div class="modal-body">'+
+                            '<p><a href="http://ghsfha.org">'+data[0]+'</a></p>'+
+                        '</div>'+
+                        '<div class="modal-footer">'+
+                            '<p>Modal footer text goes here.</p>'+
+                        '</div>'+
+                    '</div>';
+                    var tooltipText = '<strong>'+data[0]+'</strong><br/>';
+                    
+                    var markerLocation = new L.LatLng(lat, lng);
+                    var marker = new L.Marker(markerLocation, {icon: markerIcon} ).bindPopup(popupText);
+                    
+                    (mymap.getZoom() >= tooltipThreshold ? marker.bindTooltip(tooltipText, {direction: 'right', permanent:true}) : marker.bindTooltip(tooltipText, {direction: 'right', permanent:false} ));
+                    
+                    markersLayer.addLayer(marker);
+                    
+                });
+			}
+
+            function setTableEvents(table) {
+			  // listen for page clicks
+			  table.on("page", () => {
+			    draw = true;
+			  });
+			
+			  // listen for updates and adjust the chart accordingly
+			  table.on("draw", () => {
+			    if (draw) {
+                    draw = false;
+			    } else {
+                    createHighcharts(getChartData(table));
+                    updateMap(table);
+			    }
+			  });
+			}
+			
+			var lastZoom;
+            mymap.on('zoomend', function() {
+                var zoom = mymap.getZoom();
+                if (zoom < tooltipThreshold && (!lastZoom || lastZoom >= tooltipThreshold)) {
+                    mymap.eachLayer(function(l) {
+                        if (l.getTooltip()) {
+                            var tooltip = l.getTooltip();
+                            l.unbindTooltip().bindTooltip(tooltip, {permanent:false})
+                        }
+                    })
+                } else if (zoom >= tooltipThreshold && (!lastZoom || lastZoom < tooltipThreshold)) {
+                    mymap.eachLayer(function(l) {
+                        if (l.getTooltip()) {
+                            var tooltip = l.getTooltip();
+                            l.unbindTooltip().bindTooltip(tooltip, {permanent:true})
+                        }
+                    });
+                }
+                lastZoom = zoom;
+            })
+		</script>
+<script src="rocket-loader.min.js" data-cf-settings="2c1512a1b7158f87de304483-|49" defer=""></script><script>(function(){var js = "window['__CF$cv$params']={r:'77510b1f38710d79',m:'xmUo8_e54MMtJGhViC60IdO7uFQD4AqrlEoGuXujh1c-1670287994-0-AVQS/oftnJXnsoHVVSD8EISrFG4noZ5kWhqg5Mtz5F59WdfqJ7NBeuYDEblFl/qOA8mv8iT3pVXlYbCLwtVxdy7G+pwdVi7PvfZkDMy61N48JqoB3COMpve7qwH2+uqfwtw92NehG9RE5NvdtQfm+hP3Pi6qlWveYOGOCIE/1sYR',s:[0xd986a1dc77,0x922de30891],u:'/cdn-cgi/challenge-platform/h/g'};var now=Date.now()/1000,offset=14400,ts=''+(Math.floor(now)-Math.floor(now%offset)),_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/h/g/scripts/alpha/invisible.js?ts='+ts,document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.nonce = '';_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+</html>
